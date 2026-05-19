@@ -1,0 +1,10 @@
+node_modules/
+.cache/
+.littlepets/
+dist/
+output/
+release/
+*.log
+npm-debug.log*
+chrome_history_copy.db
+resume.pdf

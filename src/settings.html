@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LittlePets</title>
+    <link rel="stylesheet" href="./settings.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">LITTLEPETS</p>
+          <h1>桌面陪伴设置</h1>
+          <p class="lead">选择一只宠物，让它悬浮在桌面上，安静陪着你，也在需要的时候给一点轻轻的鼓励。</p>
+        </div>
+        <div class="hero-actions">
+          <button class="pill-button primary" id="togglePetButton" type="button">显示桌宠</button>
+          <button class="pill-button" id="hideWindowButton" type="button">收起界面</button>
+        </div>
+      </header>
+
+      <section class="content-grid">
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">PETS</p>
+              <h2>选择宠物</h2>
+            </div>
+            <span class="count-pill" id="petCount">0 只</span>
+          </div>
+          <div class="pet-list" id="petList" aria-label="可选宠物"></div>
+        </section>
+
+        <section class="panel pastel">
+          <p class="eyebrow">COMPANION</p>
+          <h2 id="selectedName">百合燕</h2>
+          <p id="selectedDescription">默认使用项目内置的宠物资源。</p>
+
+          <div class="preview-frame">
+            <span class="preview-sprite" id="previewSprite" aria-hidden="true"></span>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <strong>桌宠显示</strong>
+              <span>隐藏后仍然会在托盘后台运行。</span>
+            </div>
+            <button class="pill-button" id="visibilityButton" type="button">隐藏</button>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <strong>窗口置顶</strong>
+              <span>保持宠物浮在其他窗口上方。</span>
+            </div>
+            <button class="pill-button" id="topButton" type="button">置顶</button>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <strong>开机自启动</strong>
+              <span>系统启动后自动在后台运行 LittlePets。</span>
+            </div>
+            <label class="switch" for="startupToggle">
+              <input id="startupToggle" type="checkbox" />
+              <span class="switch-track"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <strong>显示对话框</strong>
+              <span>控制宠物头上的鼓励和安慰气泡是否显示。</span>
+            </div>
+            <label class="switch" for="bubbleToggle">
+              <input id="bubbleToggle" type="checkbox" checked />
+              <span class="switch-track"></span>
+            </label>
+          </div>
+
+          <div class="setting-row stacked">
+            <div>
+              <strong>宠物大小</strong>
+              <span>调整桌面上宠物本体的显示比例。</span>
+            </div>
+            <label class="scale-control" for="scaleRange">
+              <input id="scaleRange" type="range" min="35" max="140" step="5" value="100" />
+              <span id="scaleValue">100%</span>
+            </label>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="./settings.js"></script>
+  </body>
+</html>

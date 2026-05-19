@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LittlePets Pet</title>
+    <link rel="stylesheet" href="./pet.css" />
+  </head>
+  <body>
+    <main class="pet-dock" aria-label="LittlePets 桌面宠物">
+      <section class="pet-shell">
+        <section class="speech-bubble" id="bubble" aria-live="polite" aria-hidden="true">
+          <p id="bubbleText">今天先慢慢来，也算是在认真生活。</p>
+        </section>
+
+        <button class="pet-hitbox no-drag" id="petButton" type="button" aria-label="和桌宠互动">
+          <span class="pet-sprite" id="petSprite" aria-hidden="true"></span>
+        </button>
+      </section>
+    </main>
+
+    <script src="./pet.js"></script>
+  </body>
+</html>
