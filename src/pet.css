@@ -39,21 +39,34 @@ button {
 
 .pet-dock {
   position: relative;
-  width: 560px;
-  height: 640px;
+  width: 100vw;
+  height: 100vh;
   pointer-events: none;
 }
 
 .pet-shell {
   position: absolute;
-  left: 104px;
-  top: 170px;
+  left: 2px;
+  top: 2px;
   width: calc(var(--cell-width) * var(--pet-scale));
   height: calc(var(--cell-height) * var(--pet-scale));
-  pointer-events: none;
+  pointer-events: auto;
+}
+
+.pet-drag-region {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  width: 100%;
+  height: 100%;
+  border-radius: 42px;
+  pointer-events: auto;
+  -webkit-app-region: drag;
 }
 
 .speech-bubble {
+  display: none;
   position: absolute;
   left: 50%;
   bottom: calc(100% + 22px);
@@ -108,15 +121,17 @@ button {
 }
 
 .pet-hitbox {
-  position: relative;
-  z-index: 2;
-  width: calc(192px * var(--pet-scale));
-  height: calc(208px * var(--pet-scale));
+  position: absolute;
+  left: 16%;
+  bottom: 0;
+  z-index: 7;
+  width: 68%;
+  height: 34%;
   border: 0;
   padding: 0;
   border-radius: 42px;
   background: transparent;
-  cursor: grab;
+  cursor: pointer;
   touch-action: none;
   pointer-events: auto;
 }
@@ -127,23 +142,20 @@ button {
   box-shadow: none;
 }
 
-.pet-hitbox:active {
-  cursor: grabbing;
-  transform: scale(0.985);
-}
-
 .pet-sprite {
   position: absolute;
   left: 0;
   top: 0;
+  z-index: 3;
   width: var(--cell-width);
   height: var(--cell-height);
   background-repeat: no-repeat;
   background-position: 0 0;
   background-size: 1536px 1872px;
-  filter: drop-shadow(0 18px 15px rgba(0, 0, 0, 0.2));
+  filter: none;
   transform: scale(var(--pet-scale));
   transform-origin: top left;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

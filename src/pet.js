@@ -1,6 +1,12 @@
 const CELL_WIDTH = 192;
 const CELL_HEIGHT = 208;
 
+// pet.js 现在只负责：
+// 1. 播放精灵图动画
+// 2. 处理悬停和点击互动
+// 3. 控制气泡显示
+// 窗口拖拽交给 Electron 原生拖拽区域处理，不再自己计算跨屏位移。
+
 const animations = {
   idle: {
     row: 0,
@@ -60,10 +66,9 @@ const encouragements = [
   "先做 10 分钟就好，专注不需要一口气用完。"
 ];
 
-const bubble = document.querySelector("#bubble");
-const bubbleText = document.querySelector("#bubbleText");
 const petButton = document.querySelector("#petButton");
 const petSprite = document.querySelector("#petSprite");
+const petDragRegion = document.querySelector(".pet-drag-region");
 
 let currentAnimation = "idle";
 let frameIndex = 0;
@@ -71,16 +76,12 @@ let animationTimer = null;
 let messageTimer = null;
 let hideBubbleTimer = null;
 let lastMessage = "";
-let dragState = null;
-let isFinishing = false;
 let bubbleEnabled = true;
-let pendingMove = null;
-let moveFrameId = null;
+let lastDragDirection = null;
 
 function hideBubble() {
   window.clearTimeout(hideBubbleTimer);
-  bubble.classList.remove("is-changing", "is-visible");
-  bubble.setAttribute("aria-hidden", "true");
+  window.littlePets.hideBubble();
 }
 
 function applyState(state) {
@@ -170,14 +171,7 @@ function showMessage(message = pickMessage(), duration = 9000) {
   }
 
   window.clearTimeout(hideBubbleTimer);
-  bubble.classList.add("is-changing");
-  bubble.setAttribute("aria-hidden", "false");
-
-  window.setTimeout(() => {
-    bubbleText.textContent = message;
-    bubble.classList.remove("is-changing");
-    bubble.classList.add("is-visible");
-  }, 140);
+  window.littlePets.showBubble({ message, duration });
 
   hideBubbleTimer = window.setTimeout(() => {
     hideBubble();
@@ -214,128 +208,43 @@ function pickHoverAnimation() {
   return hoverAnimations[Math.floor(Math.random() * hoverAnimations.length)];
 }
 
-function flushPendingMove() {
-  moveFrameId = null;
+function playDragDirection(direction) {
+  const nextAnimation = direction === "right" ? "running-right" : "running-left";
 
-  if (!pendingMove) {
+  if (lastDragDirection === direction && currentAnimation === nextAnimation) {
     return;
   }
 
-  const { x, y } = pendingMove;
-  pendingMove = null;
+  lastDragDirection = direction;
+  playAnimation(nextAnimation);
+}
 
-  if (x !== 0 || y !== 0) {
-    window.littlePets.movePetBy({ x, y });
+function stopDragAnimation() {
+  lastDragDirection = null;
+
+  if (currentAnimation === "running-left" || currentAnimation === "running-right") {
+    playAnimation("idle");
   }
 }
 
-function queueMove(dx, dy) {
-  if (!pendingMove) {
-    pendingMove = { x: 0, y: 0 };
-  }
-
-  pendingMove.x += dx;
-  pendingMove.y += dy;
-
-  if (moveFrameId === null) {
-    moveFrameId = window.requestAnimationFrame(flushPendingMove);
-  }
-}
-
-function finishDrag({ treatAsClick = false } = {}) {
-  if (!dragState || isFinishing) {
-    return;
-  }
-
-  isFinishing = true;
-  if (moveFrameId !== null) {
-    window.cancelAnimationFrame(moveFrameId);
-    flushPendingMove();
-  }
-  const { pointerId, total } = dragState;
-  dragState = null;
-
-  try {
-    petButton.releasePointerCapture(pointerId);
-  } catch (e) {
-  }
-
-  window.littlePets.setPetInteractionLock(false);
-  isFinishing = false;
-
-  if (treatAsClick || total < 6) {
-    interactWithPet();
-    return;
-  }
-
-  playAnimation("idle");
-}
-
-petButton.addEventListener("contextmenu", (event) => {
+function handleContextMenu(event) {
   event.preventDefault();
   window.littlePets.showSettings();
+}
+
+petButton.addEventListener("contextmenu", handleContextMenu);
+petDragRegion?.addEventListener("contextmenu", handleContextMenu);
+
+petButton.addEventListener("click", () => {
+  interactWithPet();
 });
 
 petButton.addEventListener("pointerenter", () => {
-  if (dragState || currentAnimation !== "idle") {
+  if (currentAnimation !== "idle") {
     return;
   }
 
   playAnimation(pickHoverAnimation(), { repeat: 3, returnTo: "idle" });
-});
-
-petButton.addEventListener("pointerdown", (event) => {
-  if (event.button !== 0) {
-    return;
-  }
-
-  dragState = {
-    pointerId: event.pointerId,
-    x: event.screenX,
-    y: event.screenY,
-    total: 0,
-    direction: null
-  };
-  petButton.setPointerCapture(event.pointerId);
-  window.littlePets.setPetInteractionLock(true);
-});
-
-petButton.addEventListener("pointermove", (event) => {
-  if (!dragState) {
-    return;
-  }
-
-  const dx = event.screenX - dragState.x;
-  const dy = event.screenY - dragState.y;
-
-  if (dx === 0 && dy === 0) {
-    return;
-  }
-
-  dragState.x = event.screenX;
-  dragState.y = event.screenY;
-  dragState.total += Math.abs(dx) + Math.abs(dy);
-
-  const nextDirection = dx > 0 ? "running-right" : "running-left";
-
-  if (dragState.direction !== nextDirection) {
-    dragState.direction = nextDirection;
-    playAnimation(nextDirection);
-  }
-
-  queueMove(dx, dy);
-});
-
-petButton.addEventListener("pointerup", () => {
-  finishDrag();
-});
-
-petButton.addEventListener("pointercancel", () => {
-  finishDrag();
-});
-
-petButton.addEventListener("lostpointercapture", () => {
-  finishDrag();
 });
 
 window.littlePets.onSelectedPet((pet) => {
@@ -344,6 +253,16 @@ window.littlePets.onSelectedPet((pet) => {
 
 window.littlePets.onStateChanged((state) => {
   applyState(state);
+});
+
+window.littlePets.onDragDirection(({ direction }) => {
+  if (direction === "left" || direction === "right") {
+    playDragDirection(direction);
+  }
+});
+
+window.littlePets.onDragStop(() => {
+  stopDragAnimation();
 });
 
 window.littlePets.getState().then(applyState);
